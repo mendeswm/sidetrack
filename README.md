@@ -45,6 +45,8 @@ Confirmed working:
 
 - **TCL Flip 2**, running Android 11
 
+**Active adaptation (this session, 2026-10-26): Oilsky M308** — Android 9/API 28, MT6750V/C (Mali-T860 MP2), 2 GB RAM, 480×640 touch; ABI arm64-v8a only; minSdk 28; `e1cb18b` pushed; `.allowHardware(true)` on album art applied, unverified, pending controlled test.
+
 The following are the same class of D-pad/keypad-only Android hardware, so they should work too, but we haven't gotten our hands on one to actually confirm it:
 
 - Qin F22 Pro
@@ -82,7 +84,7 @@ Additional adaptations for D-pad use:
 ## Requirements
 
 - Spotify Premium account
-- Android 11+ (API 30+), ARM device (arm64-v8a or armeabi-v7a - both are supported, not just 32-bit)
+- Android 9+ (API 28+); upstream targets API 30+, M308 adaptation at API 28
 
 ## Install
 
@@ -103,6 +105,8 @@ To track updates automatically via [Obtainium](https://github.com/ImranR98/Obtai
 3. Obtainium will check for new releases and notify you when updates are available
 
 ## Build from Source
+
+> **M308 adaptation (2026-10-26):** minSdk lowered to 28, ABI split to arm64-v8a only, NDK 26.1. See `wiki/project/sidetrack-m308-adaptation.md`. Commit `e1cb18b`.
 
 ### Prerequisites
 
@@ -170,6 +174,7 @@ keyPassword=your-key-password
 ## Current Limitations
 
 - **Spotify Premium required** - free-tier accounts are not supported by librespot
+- **M308 adaptation (2026-10-26)** - `allowHardware(true)` applied to sharp album art (unverified), blur/Theme kept `false`; measurement inconclusive; pending controlled device test; commit `e1cb18b`
 - **ARM only** - the native library is built for `arm64-v8a` and `armeabi-v7a`
 - **No lossless/HiFi** - max quality is 320 kbps OGG Vorbis. Spotify's lossless tier uses DRM that librespot cannot and will not circumvent
 - **Spotify Connect (receive-only)** - pairs via Zeroconf so the official Spotify app can hand off playback to it, but it doesn't advertise/control other Connect targets itself

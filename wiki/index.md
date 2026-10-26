@@ -5,6 +5,7 @@ Project architecture, constraints, and adaptation notes for Oilsky M308.
 
 | Article | Summary | Updated |
 |---------|---------|---------|
+| [Agent Instructions](project/agent-instructions.md) | Working rules for the M308 fork | 2026-10-26 |
 | [Sidetrack M308 Adaptation](project/sidetrack-m308-adaptation.md) | Fork of qfertig/sidetrack targeting Oilsky M308 Android 9/API 28 with touch UI and memory optimization | 2026-10-26 |
 
 ## dev-environment

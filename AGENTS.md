@@ -1,116 +1,66 @@
-# AGENTS.md — Diretrizes para o fork do Sidetrack no Oilsky M308
+# AGENTS.md — Development rules
 
-## 1. Missão
+## Mission
+Adapt this fork of `qfertig/sidetrack` for the Oilsky M308: Android 9 (API 28), reported 480 × 640 touch display, 2 GB RAM, and an ABI that must be verified. Prioritize stable online playback at the best quality actually available through the integration and account. Offline playback is out of scope.
 
-Adaptar este repositório (fork de `qfertig/sidetrack`) para criar um cliente Spotify não oficial, leve e utilizável no Oilsky M308, com Android 9 (API 28), tela touch de 480 × 640, CPU ARM ainda a confirmar e 2 GB de RAM.
+## Mandatory workflow
+1. Inspect before editing: read `README.md`, `DESIGN.md`, Gradle files, `app/`, `native/`, submodules, and build scripts.
+2. First report a concise audit of architecture, SDK levels, Gradle/AGP/Kotlin/Java versions, API 28 blockers, native ABI, and audio path.
+3. Work incrementally and test after relevant changes. Preserve existing behavior and architecture unless evidence supports changing them.
+4. Never invent build/test/device results. Distinguish source inspection, emulator testing, and physical-device testing.
+5. Explain destructive or irreversible changes and obtain confirmation before proceeding.
+6. For resource work, follow `.kilo/skills/android-resource-optimization/SKILL.md`.
 
-O objetivo primário é obter reprodução online estável, com a melhor qualidade de streaming que o Spotify e a versão integrada do `librespot` disponibilizarem. Não implementar reprodução offline como requisito inicial.
+## Initial audit
+- Inspect `.gitmodules`; verify the librespot submodule and commit.
+- Identify `minSdk`, `targetSdk`, `compileSdk`, Gradle Wrapper, Android Gradle Plugin, Kotlin, Java, Compose, and NDK versions.
+- Locate JNI, Rust, audio output, and playback service.
+- Identify APIs/dependencies incompatible with API 28.
+- Confirm the device ABI rather than inferring it from marketing specifications.
+- Review session/credential storage; never log secrets.
+- Record baseline APK size, startup, memory, and CPU where possible.
 
-## 2. Regras de trabalho obrigatórias
+## Android 9
+Android 9 is API 28. Changing `minSdk` alone does not guarantee compatibility. Check AndroidX, Compose, image libraries, services, notifications, and runtime API calls. Keep `minSdk`, `targetSdk`, and `compileSdk` conceptually distinct. Do not add mandatory Google Play Services. Validate on the M308; a successful build is not proof of runtime compatibility.
 
-1. **Inspecione antes de alterar.** Leia `README.md`, `DESIGN.md`, `settings.gradle.kts`, os arquivos Gradle, o código em `app/`, `native/`, submódulos e scripts de build. Confirme o estado real do repositório; não presuma que a documentação descreve perfeitamente o código atual.
-2. **Faça mudanças incrementais e verificáveis.** Primeiro apresente um diagnóstico breve: arquitetura atual, `minSdk`, `targetSdk`, versões de Gradle/AGP/Kotlin/Java, dependências incompatíveis com API 28, ABI nativa e caminho de áudio. Depois proponha etapas pequenas e execute testes após cada mudança relevante.
-3. Preserve o funcionamento existente sempre que possível. Não reescreva a aplicação inteira nem substitua `librespot` sem evidência técnica e justificativa.
-4. Não faça alterações destrutivas, remova funcionalidades ou troque a arquitetura sem explicar a razão e o impacto.
-5. Não invente resultados de build, testes ou execução em hardware. Distinga claramente o que foi verificado no emulador, em dispositivo real ou apenas por inspeção.
-6. Antes de concluir, informe os arquivos alterados, as decisões, os testes executados, os resultados e as limitações ainda não verificadas.
-7. Mantenha o idioma da documentação e das mensagens da interface consistente. A interface pode começar em português brasileiro; evite textos longos e rótulos que não caibam na tela.
+## Small touch display
+Design for 480 × 640 physical pixels while respecting density, insets, and dp. Prioritize artwork, title, artist, progress, previous, play/pause, and next. Use large touch targets, readable text, simple navigation, bounded image caches, few animations, and no essential controls clipped or requiring horizontal scrolling.
 
-## 3. Primeira tarefa: auditoria do projeto
+## Audio and performance
+- Preserve librespot unless an incompatibility is demonstrated.
+- Inspect the Rust/JNI/Android audio path for redundant PCM copies, allocations, blocking, and buffer issues.
+- Keep network and decoding work off the UI thread.
+- Avoid unbounded queues and unnecessary polling.
+- Do not reduce audio buffers without testing underruns and latency.
+- Use the best quality actually supported. Upstream documentation reports up to 320 kbps Ogg Vorbis; do not call that lossless.
+- Do not bypass DRM, access controls, or Spotify restrictions.
+- Online streaming is sufficient; do not add offline downloads or persistent audio caching.
 
-Antes de modificar o código:
+## Security
+Never log or commit passwords, tokens, cookies, keys, authentication payloads, or signing keystores. Use private app storage for session data. Identify the app as an unofficial third-party client; do not claim Spotify endorsement.
 
-- Leia o `README.md` e `DESIGN.md` e examine a árvore do repositório.
-- Inspecione `.gitmodules` e confirme se o submódulo do `librespot` está inicializado e qual commit está sendo usado.
-- Identifique `minSdk`, `targetSdk`, `compileSdk`, versões de Android Gradle Plugin, Gradle Wrapper, Kotlin, Java e Jetpack Compose.
-- Localize o código de ponte JNI, a implementação Rust, o mecanismo de saída de áudio e o serviço de reprodução.
-- Identifique chamadas Android introduzidas após API 28 e dependências que exijam API superior.
-- Confirme quais ABIs o projeto compila e quais o Oilsky M308 realmente utiliza. Não deduza a ABI apenas pelo número de núcleos ou pela descrição comercial.
-- Verifique como são armazenados tokens, credenciais e dados de sessão; não registre segredos em logs.
-- Registre um baseline de tamanho do APK, tempo de inicialização, uso aproximado de memória e consumo de CPU quando for possível medir.
+## Build quality
+Use the repository Gradle Wrapper and compatible JDK/AGP/Kotlin versions. Use stable Rust unless the project requires otherwise. Preserve dependency versions initially and change only for a demonstrated reason. Run relevant Rust tests, Android tests, lint, debug build, and unsigned release build when available. Verify native ABIs in the APK.
 
-Entregue primeiro um resumo de diagnóstico e um plano priorizado. Não comece com uma migração ampla sem entender a arquitetura atual.
+## Acceptance criteria
+1. APK installs and launches on Android 9/API 28.
+2. Essential controls fit and work on the touch display.
+3. An eligible account can start online playback.
+4. Playback controls work as implemented.
+5. Sustained playback has no persistent glitches or stalls.
+6. UI remains responsive.
+7. CPU/RAM are measured when possible and regressions explained.
+8. Build instructions do not require committed secrets.
+9. Emulator and physical-device results are distinguished.
+10. Unverified M308 behavior is clearly stated.
 
-## 4. Compatibilidade Android 9
+## Suggested order
+1. Audit and baseline.
+2. Fix build blockers and API 28 incompatibilities.
+3. Build for confirmed ABI; validate JNI/audio.
+4. Adapt touch UI.
+5. Optimize from measurements.
+6. Test streaming, interruptions, resume, and sustained playback.
+7. Document build, tests, limitations, and troubleshooting.
 
-- Android 9 corresponde à API 28. A aplicação deve instalar e executar nessa versão.
-- Configure `minSdk` para 28 somente depois de verificar e corrigir incompatibilidades reais. `targetSdk` e `compileSdk` têm funções diferentes de `minSdk`; não os trate como equivalentes.
-- Prefira APIs disponíveis na API 28 ou forneça alternativas compatíveis para APIs mais recentes.
-- Verifique compatibilidade das versões de AndroidX, Compose, bibliotecas de imagens, serviços em primeiro plano e notificações. Faça downgrade seletivo apenas quando necessário e compatível.
-- Confirme permissões e comportamento de serviços de reprodução em segundo plano no Android 9. Não introduza dependências de Google Play Services; o projeto original se propõe a funcionar sem eles.
-- Teste instalação, inicialização, login/pareamento, reprodução, pausa, troca de faixa, controle de volume, interrupções de áudio e retorno do aplicativo.
-- Não prometa compatibilidade apenas porque o APK compila. O teste no Oilsky M308 é o critério final.
-
-## 5. Interface para tela 480 × 640
-
-Priorize uma interface touch simples, compacta e responsiva:
-
-- Projete primeiro para 480 × 640 pixels em orientação retrato, mas respeite densidade real, insets e tamanho lógico em dp.
-- Evite layouts que dependam de tela grande, menus extensos, painéis simultâneos ou rolagem horizontal.
-- Use controles grandes, com espaçamento suficiente para toque e estados visuais claros.
-- A tela de reprodução deve dar prioridade a capa, título, artista, progresso, anterior, reproduzir/pausar e próxima.
-- Coloque fila, busca, playlists e configurações em telas separadas e simples.
-- Reduza animações, sombras, recomposições desnecessárias e atualizações frequentes da interface.
-- Carregue imagens sob demanda, dimensione-as antes de exibir e limite o cache em memória.
-- Evite manter listas completas e objetos de imagem na memória quando não forem necessários.
-- Mantenha acessibilidade básica: contraste legível, descrições de controles e tamanho de toque adequado.
-- Não remova a compatibilidade com controles físicos existentes se isso for barato de preservar, mas não os torne requisito: o M308 é touch.
-
-## 6. Áudio, streaming e desempenho
-
-- Preserve `librespot` como núcleo de sessão e streaming, salvo incompatibilidade demonstrada.
-- Determine e documente o caminho de áudio atual entre Rust/JNI e Android `AudioTrack`; procure cópias excessivas de buffers, alocações frequentes e bloqueios na thread de interface.
-- Evite enviar grandes blocos de PCM pela JNI se houver uma alternativa segura e comprovadamente melhor; qualquer mudança deve ser medida e testada.
-- Garanta que decodificação e operações de rede não bloqueiem a UI.
-- Use buffers de áudio razoáveis e tratamento de backpressure; evite tanto underruns quanto consumo de memória desnecessário.
-- Implemente estados explícitos para conectando, carregando, reproduzindo, pausado, erro de rede e sessão expirada.
-- A meta de qualidade é a maior opção efetivamente oferecida pela integração e pela conta. A documentação atual do Sidetrack informa até 320 kbps Ogg Vorbis; não chame isso de lossless.
-- Não implemente extração de conteúdo, contorno de DRM, evasão de controles de acesso ou mecanismos para burlar limitações do Spotify.
-- Streaming online é suficiente para a primeira versão. Não acrescente download/offline ou cache persistente de áudio como parte desta tarefa.
-
-## 7. Segurança e conta
-
-- Não grave senhas, tokens, cookies, chaves ou payloads de autenticação nos logs.
-- Use armazenamento privado do aplicativo para dados de sessão e siga as práticas de segurança existentes, melhorando-as quando necessário.
-- Não inclua segredos, keystores, senhas de assinatura ou arquivos locais de configuração no Git.
-- Preserve avisos de que se trata de um cliente de terceiros não oficial. O uso de clientes não oficiais pode envolver risco para a conta e está sujeito aos termos e às mudanças do serviço.
-- Não afirme que o projeto é aprovado, certificado ou endossado pelo Spotify.
-
-## 8. Build e qualidade do código
-
-- Respeite o Gradle Wrapper do repositório e a matriz de compatibilidade entre Gradle, Android Gradle Plugin, Kotlin e JDK.
-- Use Rust estável, exceto se o projeto demonstrar necessidade justificada de outra versão.
-- Preserve as versões de dependências no início; atualize somente quando necessário para API 28, segurança ou build reproduzível.
-- Mantenha as alterações pequenas e explique qualquer mudança em versões ou dependências.
-- Execute, quando disponíveis e pertinentes: testes Rust, testes unitários Android, lint, build debug e build release não assinado.
-- Verifique os binários nativos dentro do APK e confirme a ABI pretendida.
-- Não coloque keystore real no repositório. Se a assinatura exigir configuração local, documente-a sem segredos.
-- Evite otimizações prematuras. Meça antes/depois quando ferramentas e dispositivo permitirem.
-
-## 9. Critérios de aceitação
-
-A tarefa não está concluída apenas com uma compilação bem-sucedida. Procure satisfazer estes critérios:
-
-1. APK instala e abre em Android 9 / API 28.
-2. A interface é utilizável por toque em 480 × 640, sem controles essenciais cortados.
-3. O aplicativo conecta-se e inicia streaming online com uma conta elegível.
-4. Play/pause, próxima/anterior, seek quando suportado, volume e estado de reprodução funcionam.
-5. O áudio é emitido pelo dispositivo sem falhas persistentes, travamentos ou underruns audíveis durante um teste prolongado.
-6. A reprodução não bloqueia a interface; alternar telas e retornar ao player não encerra a sessão indevidamente.
-7. O consumo de memória e CPU foi medido quando possível e não piorou sem justificativa.
-8. O projeto continua compilável por instruções documentadas, sem depender de credenciais ou arquivos secretos locais.
-9. Limitações não testadas no Oilsky M308 são declaradas explicitamente.
-
-## 10. Ordem de implementação sugerida
-
-1. Auditoria e baseline, sem mudanças funcionais.
-2. Corrigir bloqueadores de compilação e incompatibilidades necessárias para API 28.
-3. Compilar para a ABI confirmada do dispositivo e validar JNI/áudio.
-4. Ajustar a interface para 480 × 640 e navegação touch.
-5. Reduzir uso de memória, imagens, animações e trabalho na thread principal com base em medições.
-6. Validar streaming, interrupções, retomada e estabilidade.
-7. Atualizar documentação com build, instalação, testes, limitações e procedimento de diagnóstico.
-
-## 11. Escopo negativo
-
-Não redesenhe o protocolo Spotify, não substitua o núcleo de streaming por uma implementação própria, não adicione recursos offline, não migre para uma arquitetura nova sem necessidade e não remova funcionalidades do upstream sem justificar. Priorize compatibilidade, estabilidade e usabilidade no aparelho real.
+Do not rewrite the Spotify protocol, replace the streaming core without evidence, add offline playback, or remove upstream functionality without justification.

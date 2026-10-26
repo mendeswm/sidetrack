@@ -90,7 +90,7 @@ private suspend fun loadBitmap(context: android.content.Context, url: String): B
     val request = ImageRequest.Builder(context)
         .data(url)
         .size(Size(128, 128))
-        .allowHardware(false)
+        .allowHardware(false)  // loadBitmap draws to software Canvas; incompatible with hardware bitmaps (API 28)
         .build()
     val result = loader.execute(request)
     return (result as? SuccessResult)?.drawable?.let { drawable ->

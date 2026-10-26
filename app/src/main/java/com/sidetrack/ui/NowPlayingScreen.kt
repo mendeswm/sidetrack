@@ -90,7 +90,7 @@ fun NowPlayingScreen(
             ImageRequest.Builder(context)
                 .data(url)
                 .size(320)
-                .allowHardware(false)
+                .allowHardware(true)
                 .build(),
         )
         sharpResult.drawable?.toBitmap()?.let { sharpBitmap = it }
@@ -99,7 +99,7 @@ fun NowPlayingScreen(
                 ImageRequest.Builder(context)
                     .data(url)
                     .size(320)
-                    .allowHardware(false)
+                    .allowHardware(false)  // blur transformation uses getPixels(); incompatible with hardware bitmaps (API 28)
                     .transformations(listOf(BitmapBlurTransformation()))
                     .build(),
             )

@@ -49,6 +49,28 @@ pub extern "C" fn Java_com_sidetrack_bridge_NativeBridge_setTmpDir(
     session::set_tmp_dir(&dir);
 }
 
+/// Set audio cache directory and size limit.
+/// @param path absolute path to cache directory; empty string to disable.
+/// @param size_mb limit in megabytes.
+/// Returns null on success, or an error message string on failure.
+#[unsafe(no_mangle)]
+pub extern "C" fn Java_com_sidetrack_bridge_NativeBridge_setAudioCache(
+    mut env: JNIEnv,
+    _class: JClass,
+    path: JString,
+    size_mb: jint,
+) -> jstring {
+    let dir = jstring_to_string(&mut env, &path);
+    match session::set_audio_cache(&dir, size_mb as u64) {
+        Ok(()) => std::ptr::null_mut(),
+        Err(e) => {
+            let msg = format!("{e}");
+            log::error!("setAudioCache failed: {msg}");
+            string_to_jstring(&mut env, &msg)
+        }
+    }
+}
+
 /// Connect to Spotify with an OAuth access token.
 /// Returns null on success, or an error message string on failure.
 #[unsafe(no_mangle)]

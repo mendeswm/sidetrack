@@ -21,6 +21,14 @@ object NativeBridge {
     external fun setTmpDir(path: String)
 
     /**
+     * Set audio cache directory and size limit.
+     * @param path absolute path to cache directory; empty string to disable.
+     * @param sizeMb limit in megabytes.
+     * @return null on success, or an error message string on failure.
+     */
+    external fun setAudioCache(path: String, sizeMb: Int): String?
+
+    /**
      * Update player/session configuration from a JSON string.
      * @return null on success, or an error message string on failure.
      */

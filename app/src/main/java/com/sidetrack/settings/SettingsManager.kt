@@ -19,9 +19,13 @@ data class SettingsState(
     val autoplay: Boolean = false,
     val audioQuality: AudioQuality = AudioQuality.HIGH,
     val einkMode: Boolean = false,
+    val audioCacheEnabled: Boolean = false,
+    val audioCacheLimitMb: Int = 2048,
 )
 
 class SettingsManager(context: Context) {
+
+    private val appContext = context.applicationContext
 
     companion object {
         private const val PREFS_NAME = "sidetrack_settings"
@@ -30,6 +34,8 @@ class SettingsManager(context: Context) {
         private const val KEY_GAPLESS = "gapless"
         private const val KEY_AUDIO_QUALITY = "audio_quality"
         private const val KEY_EINK_MODE = "eink_mode"
+        private const val KEY_AUDIO_CACHE_ENABLED = "audio_cache_enabled"
+        private const val KEY_AUDIO_CACHE_LIMIT_MB = "audio_cache_limit_mb"
     }
 
     private val prefs: SharedPreferences =
@@ -51,6 +57,8 @@ class SettingsManager(context: Context) {
             autoplay = prefs.getBoolean(KEY_AUTOPLAY, false),
             audioQuality = quality,
             einkMode = prefs.getBoolean(KEY_EINK_MODE, false),
+            audioCacheEnabled = prefs.getBoolean(KEY_AUDIO_CACHE_ENABLED, false),
+            audioCacheLimitMb = prefs.getInt(KEY_AUDIO_CACHE_LIMIT_MB, 2048),
         )
     }
 
@@ -79,6 +87,29 @@ class SettingsManager(context: Context) {
             .apply()
         _state.value = _state.value.copy(normalization = normalization, gapless = gapless, audioQuality = quality)
         pushConfigToNative()
+    }
+
+    fun setAudioCache(enabled: Boolean, limitMb: Int = 2048) {
+        prefs.edit()
+            .putBoolean(KEY_AUDIO_CACHE_ENABLED, enabled)
+            .putInt(KEY_AUDIO_CACHE_LIMIT_MB, limitMb)
+            .apply()
+        _state.value = _state.value.copy(audioCacheEnabled = enabled, audioCacheLimitMb = limitMb)
+        // Notify native layer to update cache settings
+        NativeBridge.setAudioCache(
+            if (enabled) {
+                val sdPath = android.os.Environment.getExternalStorageDirectory()?.absolutePath
+                val ctx = appContext
+                val cacheDir = ctx.getExternalCacheDir()
+                val preferred = if (sdPath != null) {
+                    "$sdPath/Android/data/com.sidetrack.app/cache/audio"
+                } else {
+                    cacheDir?.absolutePath ?: (ctx.getCacheDir().absolutePath + "/audio")
+                }
+                preferred
+            } else "",
+            limitMb,
+        )
     }
 
     /** Build JSON and push current config to native layer. */

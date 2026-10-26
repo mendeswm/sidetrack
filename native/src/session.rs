@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, OnceLock, Mutex as StdMutex};
 
 use librespot_core::SessionConfig;
+use librespot_core::cache::Cache;
 use librespot_core::authentication::Credentials;
 use librespot_core::Session;
 use tokio::runtime::Runtime;
@@ -18,6 +19,12 @@ static SESSION: OnceLock<Arc<Mutex<Option<Session>>>> = OnceLock::new();
 /// Custom tmp dir set from Android (app cache dir).
 static TMP_DIR: OnceLock<StdMutex<Option<PathBuf>>> = OnceLock::new();
 
+/// Audio cache directory (optional, from SD storage).
+static AUDIO_CACHE_DIR: OnceLock<StdMutex<Option<PathBuf>>> = OnceLock::new();
+
+/// Audio cache size limit in bytes (optional).
+static AUDIO_CACHE_LIMIT: OnceLock<StdMutex<Option<u64>>> = OnceLock::new();
+
 /// Set the temporary directory for librespot file downloads.
 pub fn set_tmp_dir(path: &str) {
     let slot = TMP_DIR.get_or_init(|| StdMutex::new(None));
@@ -27,6 +34,44 @@ pub fn set_tmp_dir(path: &str) {
 
 fn get_tmp_dir() -> Option<PathBuf> {
     TMP_DIR.get().and_then(|m| m.lock().unwrap().clone())
+}
+
+fn get_audio_cache_dir() -> Option<PathBuf> {
+    AUDIO_CACHE_DIR.get().and_then(|m| m.lock().unwrap().clone())
+}
+
+fn get_audio_cache_limit() -> Option<u64> {
+    AUDIO_CACHE_LIMIT.get().and_then(|m| m.lock().unwrap().clone())
+}
+
+/// Set audio cache directory and size limit.
+/// @param dir absolute path; empty means disable.
+/// @param limit_mb megabytes.
+    pub fn set_audio_cache(dir: &str, limit_mb: u64) -> Result<()> {
+    // Use manual error mapping to avoid adding From<std::io::Error>
+    if dir.is_empty() {
+        let slot = AUDIO_CACHE_DIR.get_or_init(|| StdMutex::new(None));
+        *slot.lock().unwrap() = None;
+        let limit_slot = AUDIO_CACHE_LIMIT.get_or_init(|| StdMutex::new(None));
+        *limit_slot.lock().unwrap() = None;
+        log::info!("audio cache disabled");
+        return Ok(());
+    }
+    let path = PathBuf::from(dir);
+    if let Some(parent) = path.parent() {
+        if let Err(e) = std::fs::create_dir_all(parent) {
+            return Err(SidetrackError::Session(format!("cache parent dir failed: {e}")));
+        }
+    }
+    if let Err(e) = std::fs::create_dir_all(&path) {
+        return Err(SidetrackError::Session(format!("cache dir failed: {e}")));
+    }
+    let slot = AUDIO_CACHE_DIR.get_or_init(|| StdMutex::new(None));
+    *slot.lock().unwrap() = Some(path);
+    let limit_slot = AUDIO_CACHE_LIMIT.get_or_init(|| StdMutex::new(None));
+    *limit_slot.lock().unwrap() = Some(limit_mb * 1024 * 1024);
+        log::info!("audio cache set to: {}, limit: {} MB", dir, limit_mb);
+    Ok(())
 }
 
 pub fn runtime() -> &'static Runtime {
@@ -67,7 +112,28 @@ pub async fn connect_with_credentials(credentials: Credentials) -> Result<()> {
         }
     }
 
-    let session = Session::new(config, None);
+    // Build audio cache if configured
+    let cache = get_audio_cache_dir().and_then(|dir| {
+        let limit = get_audio_cache_limit()?;
+        let cache_dir = dir.clone();
+        match Cache::new(
+            None::<&std::path::Path>,
+            None::<&std::path::Path>,
+            Some(&cache_dir),
+            Some(limit),
+        ) {
+            Ok(c) => {
+                log::info!("audio cache enabled at: {}", dir.display());
+                Some(c)
+            }
+            Err(e) => {
+                log::warn!("audio cache init failed: {e}");
+                None
+            }
+        }
+    });
+
+    let session = Session::new(config, cache);
 
     session
         .connect(credentials, true)

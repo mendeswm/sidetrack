@@ -526,7 +526,7 @@ class PlayerViewModel : ViewModel() {
             val urisToResolve = mutableListOf<String>()
             urisToResolve.addAll(queueState.userQueue)
             urisToResolve.addAll(
-                queueState.contextTracks.drop(queueState.contextIndex + 1).take(20),
+                queueState.contextTracks.drop(queueState.contextIndex + 1).take(8),
             )
 
             val cached = queueState.trackMetadata
@@ -550,7 +550,7 @@ class PlayerViewModel : ViewModel() {
         val qState = queueManager.state.value
         val upcoming = qState.userQueue.ifEmpty {
             qState.contextTracks.drop(qState.contextIndex + 1)
-        }.take(3)
+        }.take(2)
         val cached = qState.trackMetadata
         val artUrls = mutableListOf<String>()
         for (uri in upcoming) {

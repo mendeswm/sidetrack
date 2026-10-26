@@ -89,7 +89,7 @@ fun NowPlayingScreen(
         val sharpResult = context.imageLoader.execute(
             ImageRequest.Builder(context)
                 .data(url)
-                .size(720)
+                .size(320)
                 .allowHardware(false)
                 .build(),
         )
@@ -98,7 +98,7 @@ fun NowPlayingScreen(
             val blurredResult = context.imageLoader.execute(
                 ImageRequest.Builder(context)
                     .data(url)
-                    .size(720)
+                    .size(320)
                     .allowHardware(false)
                     .transformations(listOf(BitmapBlurTransformation()))
                     .build(),
@@ -275,7 +275,7 @@ private fun NowPlayingControls(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Back button + context name

@@ -56,7 +56,7 @@ private val EinkColorScheme = lightColorScheme(
     onError = Color.White,
 )
 
-private val paletteCache = LruCache<String, AlbumColors>(20)
+private val paletteCache = LruCache<String, AlbumColors>(8)
 
 @Composable
 fun rememberAlbumColors(albumArtUrl: String?): AlbumColors {
@@ -76,7 +76,7 @@ fun rememberAlbumColors(albumArtUrl: String?): AlbumColors {
         }
 
         val bitmap = loadBitmap(context, albumArtUrl) ?: return@LaunchedEffect
-        val palette = Palette.from(bitmap).maximumColorCount(16).generate()
+        val palette = Palette.from(bitmap).maximumColorCount(8).generate()
         val extracted = extractColors(palette)
         paletteCache.put(albumArtUrl, extracted)
         colors = extracted

@@ -196,14 +196,14 @@ class QueueManager {
     fun cacheMetadata(uri: String, info: TrackInfo) {
         _state.update { current ->
             val updated = current.trackMetadata + (uri to info)
-            if (updated.size <= 200) {
+            if (updated.size <= 50) {
                 current.copy(trackMetadata = updated)
             } else {
                 // Keep tracks near current position + user queue, evict the rest
                 val keepUris = mutableSetOf(uri)
                 keepUris.addAll(current.userQueue)
-                val start = (current.contextIndex - 5).coerceAtLeast(0)
-                val end = (current.contextIndex + 25).coerceAtMost(current.contextTracks.size)
+                val start = (current.contextIndex - 3).coerceAtLeast(0)
+                val end = (current.contextIndex + 8).coerceAtMost(current.contextTracks.size)
                 if (start < end) keepUris.addAll(current.contextTracks.subList(start, end))
                 current.copy(trackMetadata = updated.filterKeys { it in keepUris })
             }

@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.sidetrack.app"
-        minSdk = 30
+        minSdk = 28
         targetSdk = 30
         versionCode = 12
         versionName = "0.4.1"

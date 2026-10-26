@@ -18,11 +18,6 @@ android {
         targetSdk = 30
         versionCode = 12
         versionName = "0.4.1"
-
-        // Target both 64-bit and 32-bit ARM
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
-        }
     }
 
     // Produces one APK per ABI (smaller downloads) plus a universal APK
@@ -31,8 +26,8 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = true
+            include("arm64-v8a")
+            isUniversalApk = false
         }
     }
 

@@ -20,7 +20,7 @@ data class SettingsState(
     val audioQuality: AudioQuality = AudioQuality.HIGH,
     val einkMode: Boolean = false,
     val audioCacheEnabled: Boolean = false,
-    val audioCacheLimitMb: Int = 2048,
+    val audioCacheLimitMb: Int = 1024,
 )
 
 class SettingsManager(context: Context) {
@@ -58,7 +58,7 @@ class SettingsManager(context: Context) {
             audioQuality = quality,
             einkMode = prefs.getBoolean(KEY_EINK_MODE, false),
             audioCacheEnabled = prefs.getBoolean(KEY_AUDIO_CACHE_ENABLED, false),
-            audioCacheLimitMb = prefs.getInt(KEY_AUDIO_CACHE_LIMIT_MB, 2048),
+            audioCacheLimitMb = prefs.getInt(KEY_AUDIO_CACHE_LIMIT_MB, 1024),
         )
     }
 
@@ -89,24 +89,18 @@ class SettingsManager(context: Context) {
         pushConfigToNative()
     }
 
-    fun setAudioCache(enabled: Boolean, limitMb: Int = 2048) {
+    fun setAudioCache(enabled: Boolean, limitMb: Int = 1024) {
         prefs.edit()
             .putBoolean(KEY_AUDIO_CACHE_ENABLED, enabled)
             .putInt(KEY_AUDIO_CACHE_LIMIT_MB, limitMb)
             .apply()
         _state.value = _state.value.copy(audioCacheEnabled = enabled, audioCacheLimitMb = limitMb)
-        // Notify native layer to update cache settings
+        // Notify native layer to update cache settings.
+        // Use the app's default (internal) cache storage instead of external SD:
+        // external SD reads caused intermittent metallic/distorted playback.
         NativeBridge.setAudioCache(
             if (enabled) {
-                val sdPath = android.os.Environment.getExternalStorageDirectory()?.absolutePath
-                val ctx = appContext
-                val cacheDir = ctx.getExternalCacheDir()
-                val preferred = if (sdPath != null) {
-                    "$sdPath/Android/data/com.sidetrack.app/cache/audio"
-                } else {
-                    cacheDir?.absolutePath ?: (ctx.getCacheDir().absolutePath + "/audio")
-                }
-                preferred
+                appContext.cacheDir.resolve("audio_cache").absolutePath
             } else "",
             limitMb,
         )

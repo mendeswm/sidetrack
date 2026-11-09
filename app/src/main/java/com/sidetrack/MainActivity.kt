@@ -49,7 +49,11 @@ class MainActivity : ComponentActivity() {
 
         // Push initial config to native before any connect
         settingsManager.pushConfigToNative()
-
+        // Sync persisted audio-cache settings (internal storage, 1 GB limit by default)
+        settingsManager.setAudioCache(
+            settingsManager.state.value.audioCacheEnabled,
+            settingsManager.state.value.audioCacheLimitMb,
+        )
         setContent {
             SidetrackTheme {
                 val vm: PlayerViewModel = viewModel()

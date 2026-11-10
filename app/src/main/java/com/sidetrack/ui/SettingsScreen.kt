@@ -178,8 +178,11 @@ fun SettingsScreen(
                         value = level.toFloat(),
                         onValueChange = { newValue ->
                             val rounded = newValue.roundToInt().coerceIn(minLevel, maxLevel)
-                            val newLevels = settings.eqLevels.toMutableList().apply { set(index, rounded) }
-                            settingsManager.setEqLevels(newLevels)
+                            val levels = settings.eqLevels.toMutableList()
+                            // Ensure list covers every band index before writing.
+                            while (levels.size <= index) levels.add(0)
+                            levels[index] = rounded
+                            settingsManager.setEqLevels(levels)
                         },
                         valueRange = minLevel.toFloat()..maxLevel.toFloat(),
                         steps = maxLevel - minLevel,

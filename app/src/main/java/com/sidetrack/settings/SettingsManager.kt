@@ -142,7 +142,15 @@ class SettingsManager(context: Context) {
 
     fun setEqLevels(levels: List<Int>) {
         val (min, max) = audioEffectsManager.levelRange
-        val clampedLevels = levels.map { clamp(it, min, max) }
+        val bandCount = audioEffectsManager.bandCount
+        // Pad to band count so the UI can safely set any band index (first-time
+        // use has no persisted levels yet).
+        val padded = if (levels.size < bandCount) {
+            levels + List(bandCount - levels.size) { 0 }
+        } else {
+            levels.take(bandCount)
+        }
+        val clampedLevels = padded.map { clamp(it, min, max) }
         prefs.edit().putString(KEY_EQ_LEVELS, clampedLevels.joinToString(",")).apply()
         _state.value = _state.value.copy(eqLevels = clampedLevels)
         audioEffectsManager.setLevels(clampedLevels)

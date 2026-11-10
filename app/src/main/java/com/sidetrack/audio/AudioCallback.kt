@@ -20,20 +20,24 @@ class AudioCallback(private val audioEffectsManager: com.sidetrack.audio.AudioEf
     @Suppress("unused") // Called from JNI
     fun onAudioData(data: ByteArray) {
         try {
-            val track = audioTrack ?: createAudioTrack().also { audioTrack = it }
+            val track = audioTrack ?: createAudioTrack().also { newTrack ->
+                audioTrack = newTrack
+                audioEffectsManager.onTrackCreated(newTrack)
+            }
             if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
                 track.play()
             }
             track.write(data, 0, data.size)
-            audioEffectsManager.onTrackCreated(track)
         } catch (e: IllegalStateException) {
             // AudioTrack was invalidated/released — recreate it
             audioTrack = null
             try {
-                val track = createAudioTrack().also { audioTrack = it }
+                val track = createAudioTrack().also { newTrack ->
+                    audioTrack = newTrack
+                    audioEffectsManager.onTrackCreated(newTrack)
+                }
                 track.play()
                 track.write(data, 0, data.size)
-                audioEffectsManager.onTrackCreated(track)
             } catch (_: Exception) {}
         }
     }

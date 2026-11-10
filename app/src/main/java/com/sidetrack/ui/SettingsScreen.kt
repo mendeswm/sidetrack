@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -39,6 +40,7 @@ import com.sidetrack.auth.AuthManager
 import com.sidetrack.settings.AudioQuality
 import com.sidetrack.settings.SettingsManager
 import com.sidetrack.viewmodel.PlayerViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(
@@ -55,15 +57,11 @@ fun SettingsScreen(
     var draftNormalization by remember(settings.normalization) {
         mutableStateOf(settings.normalization)
     }
-    var draftGapless by remember(settings.gapless) {
-        mutableStateOf(settings.gapless)
-    }
     var draftQuality by remember(settings.audioQuality) {
         mutableStateOf(settings.audioQuality)
     }
 
     val hasAudioChanges = draftNormalization != settings.normalization ||
-        draftGapless != settings.gapless ||
         draftQuality != settings.audioQuality
 
     Column(
@@ -136,30 +134,77 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Gapless playback toggle
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Gapless Playback",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = "Seamless transition between tracks",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        // --- Equalizer section ---
+        val audioEffectsManager = playerViewModel.audioEffectsManager
+        val isEqSupported = audioEffectsManager.isSupported
+        val frequencies = audioEffectsManager.centerFrequencies
+        val (minLevel, maxLevel) = audioEffectsManager.levelRange
+
+        if (isEqSupported) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Equalizer",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = "Adjust audio frequency bands",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = settings.eqEnabled,
+                    onCheckedChange = { settingsManager.setEqEnabled(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
                 )
             }
-            Switch(
-                checked = draftGapless,
-                onCheckedChange = { draftGapless = it },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
+
+            if (settings.eqEnabled) {
+                frequencies.forEachIndexed { index, frequency ->
+                    val level = settings.eqLevels.getOrNull(index) ?: 0
+                    val frequencyLabel = when {
+                        frequency < 1000 -> "${frequency.roundToInt()} Hz"
+                        else -> "${(frequency / 1000).toInt()}K Hz"
+                    }
+                    Slider(
+                        value = level.toFloat(),
+                        onValueChange = { newValue ->
+                            val rounded = newValue.roundToInt().coerceIn(minLevel, maxLevel)
+                            val newLevels = settings.eqLevels.toMutableList().apply { set(index, rounded) }
+                            settingsManager.setEqLevels(newLevels)
+                        },
+                        valueRange = minLevel.toFloat()..maxLevel.toFloat(),
+                        steps = maxLevel - minLevel,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    )
+                    Text(
+                        text = "$frequencyLabel: $level dB",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Text(
+                    text = "Enable equalizer to adjust audio frequencies.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        } else {
+            Text(
+                text = "Equalizer not supported on this device.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 16.dp),
             )
         }
 
@@ -208,7 +253,7 @@ fun SettingsScreen(
         // Save button
         Button(
             onClick = {
-                settingsManager.applyAudioSettings(draftNormalization, draftGapless, draftQuality)
+                settingsManager.applyAudioSettings(draftNormalization, settings.gapless, draftQuality)
                 playerViewModel.recreatePlayer()
             },
             enabled = hasAudioChanges,
@@ -253,6 +298,35 @@ fun SettingsScreen(
             Switch(
                 checked = settings.autoplay,
                 onCheckedChange = { settingsManager.setAutoplay(it) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Gapless playback toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Gapless Playback",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = "Seamless transition between tracks",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = settings.gapless,
+                onCheckedChange = { settingsManager.setGaplessPlayback(it) },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                     checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,

@@ -3,6 +3,7 @@ package com.sidetrack.audio
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Receives PCM audio data from the native layer via JNI callback and feeds it
@@ -11,7 +12,7 @@ import android.media.AudioTrack
  * The native side calls onAudioData(byte[]) on a Rust thread attached to the JVM.
  * We write the bytes directly into an AudioTrack configured for 44100 Hz stereo S16LE.
  */
-class AudioCallback {
+class AudioCallback(private val audioEffectsManager: com.sidetrack.audio.AudioEffectsManager) {
 
     private var audioTrack: AudioTrack? = null
 
@@ -24,6 +25,7 @@ class AudioCallback {
                 track.play()
             }
             track.write(data, 0, data.size)
+            audioEffectsManager.onTrackCreated(track)
         } catch (e: IllegalStateException) {
             // AudioTrack was invalidated/released — recreate it
             audioTrack = null
@@ -31,6 +33,7 @@ class AudioCallback {
                 val track = createAudioTrack().also { audioTrack = it }
                 track.play()
                 track.write(data, 0, data.size)
+                audioEffectsManager.onTrackCreated(track)
             } catch (_: Exception) {}
         }
     }
@@ -62,6 +65,7 @@ class AudioCallback {
     }
 
     fun release() {
+        audioEffectsManager.onTrackReleased()
         audioTrack?.apply {
             stop()
             release()

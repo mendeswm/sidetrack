@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.sidetrack.audio.AudioEffectsManager
 import org.json.JSONArray
 
 data class PlayerUiState(
@@ -62,7 +63,8 @@ class PlayerViewModel : ViewModel() {
 
     val queueManager = QueueManager()
 
-    private val audioCallback = AudioCallback()
+    val audioEffectsManager = AudioEffectsManager()
+    private val audioCallback = AudioCallback(audioEffectsManager)
     private var eventPollingActive = false
 
     private var appContext: Context? = null
@@ -92,6 +94,20 @@ class PlayerViewModel : ViewModel() {
     fun initPlatform(context: Context) {
         if (appContext != null) return
         appContext = context.applicationContext
+        audioEffectsManager.checkSupport(context.applicationContext)
+        val sessionId = audioEffectsManager.generateSessionId(context.applicationContext)
+        audioEffectsManager.setSessionId(sessionId)
+        val sm = com.sidetrack.settings.SettingsManager(context.applicationContext)
+        viewModelScope.launch {
+            sm.state.collect { state ->
+                audioEffectsManager.settingsEnabled = state.eqEnabled
+                if (state.eqEnabled) {
+                    audioEffectsManager.setLevels(state.eqLevels)
+                } else {
+                    audioEffectsManager.release()
+                }
+            }
+        }
         historyManager = PlayHistoryManager(context.applicationContext)
 
         audioFocusManager = AudioFocusManager(context.applicationContext).apply {

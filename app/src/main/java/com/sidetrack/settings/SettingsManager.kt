@@ -19,7 +19,7 @@ data class SettingsState(
     val autoplay: Boolean = false,
     val audioQuality: AudioQuality = AudioQuality.HIGH,
     val einkMode: Boolean = false,
-    val audioCacheEnabled: Boolean = false,
+    val audioCacheEnabled: Boolean = true,
     val audioCacheLimitMb: Int = 1024,
 )
 

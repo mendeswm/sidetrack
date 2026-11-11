@@ -278,11 +278,14 @@ class PlaybackService : Service() {
 
         currentArtBitmap?.let { builder.setLargeIcon(it) }
 
-        // Add actions: previous, play/pause, next
+        // Add actions: previous, play/pause, next.
+        // Platform icons are required so the buttons render on the lock screen
+        // and notification shade (a null icon makes them invisible, though the
+        // pending intents still fire).
         val prevIntent = createMediaActionIntent("prev")
         builder.addAction(
             Notification.Action.Builder(
-                null, "Previous",
+                android.R.drawable.ic_media_previous, "Previous",
                 prevIntent,
             ).build()
         )
@@ -291,7 +294,7 @@ class PlaybackService : Service() {
             val pauseIntent = createMediaActionIntent("pause")
             builder.addAction(
                 Notification.Action.Builder(
-                    null, "Pause",
+                    android.R.drawable.ic_media_pause, "Pause",
                     pauseIntent,
                 ).build()
             )
@@ -299,7 +302,7 @@ class PlaybackService : Service() {
             val playIntent = createMediaActionIntent("play")
             builder.addAction(
                 Notification.Action.Builder(
-                    null, "Play",
+                    android.R.drawable.ic_media_play, "Play",
                     playIntent,
                 ).build()
             )
@@ -308,7 +311,7 @@ class PlaybackService : Service() {
         val nextIntent = createMediaActionIntent("next")
         builder.addAction(
             Notification.Action.Builder(
-                null, "Next",
+                android.R.drawable.ic_media_next, "Next",
                 nextIntent,
             ).build()
         )

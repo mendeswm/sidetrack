@@ -38,6 +38,7 @@ Design for 480 × 640 physical pixels while respecting density, insets, and dp. 
 
 ## Security
 Never log or commit passwords, tokens, cookies, keys, authentication payloads, or signing keystores. Use private app storage for session data. Identify the app as an unofficial third-party client; do not claim Spotify endorsement.
+Despite the device is connected by adb, NEVER install or remove any application package. The adb console is for debug pourposes only.
 
 ## Build quality
 Use the repository Gradle Wrapper and compatible JDK/AGP/Kotlin versions. Use stable Rust unless the project requires otherwise. Preserve dependency versions initially and change only for a demonstrated reason. Run relevant Rust tests, Android tests, lint, debug build, and unsigned release build when available. Verify native ABIs in the APK.

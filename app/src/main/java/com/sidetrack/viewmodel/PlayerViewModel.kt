@@ -731,12 +731,22 @@ class PlayerViewModel : ViewModel() {
                 }
             }
             is PlayerEvent.Timeout -> {
-                _uiState.update {
-                    it.copy(
-                        isPlaying = false,
-                        isLoading = false,
-                        error = "Connection timed out. Tap play to retry.",
-                    )
+                // Connection dropped — try to reconnect and resume automatically
+                // instead of waiting for the user to tap play.
+                val currentUri = _uiState.value.trackUri
+                viewModelScope.launch(Dispatchers.IO) {
+                    val reconnected = attemptReconnect()
+                    if (reconnected && currentUri.isNotEmpty()) {
+                        loadTrack(currentUri)
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                isPlaying = false,
+                                isLoading = false,
+                                error = "Connection timed out. Tap play to retry.",
+                            )
+                        }
+                    }
                 }
             }
             is PlayerEvent.Error -> {

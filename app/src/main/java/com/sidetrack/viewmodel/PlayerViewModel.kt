@@ -207,6 +207,22 @@ class PlayerViewModel : ViewModel() {
             // Request audio focus before playing
             audioFocusManager?.requestFocus()
 
+            // Ensure the Spotify session is alive before loading. The server may
+            // close idle connections during a long queue; proactively reconnect
+            // here instead of letting playerLoad silently fail mid-playback.
+            if (!NativeBridge.sessionIsConnected()) {
+                val reconnected = attemptReconnect()
+                if (!reconnected) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "Connection lost. Tap play to retry.",
+                        )
+                    }
+                    return@launch
+                }
+            }
+
             val error = NativeBridge.playerLoad(uri, true)
             if (error != null) {
                 // Track unavailable — skip to next

@@ -136,35 +136,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Gapless playback toggle
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Gapless Playback",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = "Seamless transition between tracks",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Switch(
-                checked = draftGapless,
-                onCheckedChange = { draftGapless = it },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Streaming quality radio
         Text(
             text = "Streaming Quality",
@@ -201,23 +172,6 @@ fun SettingsScreen(
                     )
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Save button
-        Button(
-            onClick = {
-                settingsManager.applyAudioSettings(draftNormalization, draftGapless, draftQuality)
-                playerViewModel.recreatePlayer()
-            },
-            enabled = hasAudioChanges,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-            ),
-        ) {
-            Text("Save")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -258,6 +212,54 @@ fun SettingsScreen(
                     checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
             )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Gapless playback toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Gapless Playback",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = "Seamless transition between tracks",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = draftGapless,
+                onCheckedChange = { draftGapless = it },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Save button
+        Button(
+            onClick = {
+                settingsManager.applyAudioSettings(draftNormalization, draftGapless, draftQuality)
+                playerViewModel.recreatePlayer()
+            },
+            enabled = hasAudioChanges,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
+            Text("Save")
         }
 
         Spacer(modifier = Modifier.height(24.dp))

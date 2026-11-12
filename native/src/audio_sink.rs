@@ -63,8 +63,15 @@ impl Sink for JniAudioSink {
         use zerocopy::IntoBytes;
         match packet {
             AudioPacket::Samples(samples) => {
-                // Convert f64 samples to S16 (the default format) and write bytes
-                let samples_s16: &[i16] = &converter.f64_to_s16(&samples);
+                // Native format is S24 (24-bit processing). Android API 28's
+                // AudioTrack doesn't expose ENCODING_PCM_24BIT (added in API 29),
+                // so downconvert S24->S16 for AudioTrack output while keeping
+                // librespot processing at 24-bit precision.
+                let samples_s24: &[i32] = &converter.f64_to_s24(&samples);
+                let samples_s16: Vec<i16> = samples_s24
+                    .iter()
+                    .map(|&s| (s >> 8) as i16)
+                    .collect();
                 self.write_bytes(samples_s16.as_bytes())
             }
             AudioPacket::Raw(raw) => self.write_bytes(&raw),

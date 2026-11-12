@@ -9,7 +9,8 @@ import android.media.AudioTrack
  * to Android's AudioTrack for playback.
  *
  * The native side calls onAudioData(byte[]) on a Rust thread attached to the JVM.
- * We write the bytes directly into an AudioTrack configured for 44100 Hz stereo S16LE.
+ * We write the bytes directly into an AudioTrack configured for 44100 Hz stereo S16LE
+ * (downconverted from librespot's internal S24 processing).
  */
 class AudioCallback {
 

@@ -9,19 +9,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
 
 enum class AudioQuality(val bitrate: Int, val label: String) {
+    LOW(96, "Low (96 kbps)"),
     NORMAL(160, "Normal (160 kbps)"),
     HIGH(320, "High (320 kbps)"),
 }
 
-data class SettingsState(
+    data class SettingsState(
     val normalization: Boolean = false,
-    val gapless: Boolean = true,
+    val gapless: Boolean = false,
     val autoplay: Boolean = false,
     val audioQuality: AudioQuality = AudioQuality.HIGH,
     val einkMode: Boolean = false,
     val audioCacheEnabled: Boolean = true,
     val audioCacheLimitMb: Int = 1024,
-)
+    )
 
 class SettingsManager(context: Context) {
 
@@ -57,7 +58,7 @@ class SettingsManager(context: Context) {
             autoplay = prefs.getBoolean(KEY_AUTOPLAY, false),
             audioQuality = quality,
             einkMode = prefs.getBoolean(KEY_EINK_MODE, false),
-            audioCacheEnabled = prefs.getBoolean(KEY_AUDIO_CACHE_ENABLED, false),
+            audioCacheEnabled = prefs.getBoolean(KEY_AUDIO_CACHE_ENABLED, true),
             audioCacheLimitMb = prefs.getInt(KEY_AUDIO_CACHE_LIMIT_MB, 1024),
         )
     }

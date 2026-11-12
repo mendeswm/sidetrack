@@ -134,7 +134,7 @@ pub async fn create_player() -> Result<()> {
         }
     }
 
-    let format = AudioFormat::default(); // S16
+    let format = AudioFormat::S24;
 
     // Create a new SoftMixer and store it (replaces previous on recreate)
     let mixer = Arc::new(

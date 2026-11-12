@@ -65,7 +65,7 @@ pub fn start(device_name: String) {
 
         let discovery = match Builder::new(device_id, ZEROCONF_CLIENT_ID.to_string())
             .name(device_name)
-            .device_type(DeviceType::Tv)
+            .device_type(DeviceType::Smartphone)
             .launch()
         {
             Ok(d) => d,

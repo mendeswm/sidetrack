@@ -13,13 +13,25 @@ captures/
 .cxx/
 app/src/main/jniLibs/
 
+# Kotlin
+.kotlin/
+
 # Rust
 native/target/
 **/*.rs.bk
 
-# OS
+# Logs and profiling
+*.log
+*.hprof
+
+# Editor / OS
 .DS_Store
 Thumbs.db
+*~
+*.swp
+*.swo
+*.orig
+*.rej
 
 # Secrets
 *.keystore

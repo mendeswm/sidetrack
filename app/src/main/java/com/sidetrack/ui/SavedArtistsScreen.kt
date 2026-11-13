@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.CircularProgressIndicator
@@ -98,14 +97,7 @@ fun SavedArtistsScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack, modifier = Modifier.focusCircle()) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
+Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Artists",
                 style = MaterialTheme.typography.titleLarge,

@@ -40,8 +40,6 @@ data class PlayerUiState(
     val durationMs: Long = 0L,
     val error: String? = null,
     val connectionStatus: String = "Disconnected",
-    val volume: Int = 32768,
-    val showVolumeOverlay: Boolean = false,
     /** D-pad up enters this on Now Playing (device has hardware volume keys, so
      *  up/down were free); while active, left/right scrub instead of skipping. */
     val isSeekMode: Boolean = false,
@@ -67,7 +65,6 @@ class PlayerViewModel : ViewModel() {
 
     private var appContext: Context? = null
     private var audioFocusManager: AudioFocusManager? = null
-    private var savedVolumeBeforeDuck: Int? = null
 
     private var lastEmittedPositionMs = 0L
     private var consecutiveErrors = 0
@@ -100,14 +97,9 @@ class PlayerViewModel : ViewModel() {
                 override fun onPause() = pause()
                 override fun onStop() = stop()
                 override fun onDuck() {
-                    savedVolumeBeforeDuck = NativeBridge.playerGetVolume()
-                    val ducked = (savedVolumeBeforeDuck!! * 0.3).toInt()
-                    NativeBridge.playerSetVolume(ducked)
+                    // Rely on system audio ducking via AudioFocus request
                 }
-                override fun onUnduck() {
-                    savedVolumeBeforeDuck?.let { NativeBridge.playerSetVolume(it) }
-                    savedVolumeBeforeDuck = null
-                }
+                override fun onUnduck() {}
             }
         }
 
@@ -175,8 +167,8 @@ class PlayerViewModel : ViewModel() {
                 return@launch
             }
 
-            val vol = NativeBridge.playerGetVolume()
-            _uiState.update { it.copy(connectionStatus = "Ready", volume = vol) }
+            NativeBridge.playerSetVolume(65535)
+            _uiState.update { it.copy(connectionStatus = "Ready") }
 
             startEventPolling()
         }
@@ -612,14 +604,6 @@ class PlayerViewModel : ViewModel() {
                 val nextUri = queueManager.next()
                 if (nextUri != null) loadTrack(nextUri)
             }
-        }
-    }
-
-    fun onVolumeChanged(volume: Int) {
-        _uiState.update { it.copy(volume = volume, showVolumeOverlay = true) }
-        viewModelScope.launch {
-            delay(1500)
-            _uiState.update { it.copy(showVolumeOverlay = false) }
         }
     }
 

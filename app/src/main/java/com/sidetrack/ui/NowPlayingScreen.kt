@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Repeat
@@ -230,33 +229,6 @@ fun NowPlayingScreen(
                 )
             }
         }
-
-        // Volume overlay — instant in e-ink mode, animated otherwise
-        if (einkMode) {
-            if (state.showVolumeOverlay) {
-                VolumeBar(
-                    volume = state.volume,
-                    controlColor = controlColor,
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp),
-                )
-            }
-        } else {
-            AnimatedVisibility(
-                visible = state.showVolumeOverlay,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 12.dp),
-            ) {
-                VolumeBar(
-                    volume = state.volume,
-                    controlColor = controlColor,
-                )
-            }
-        }
     }
 }
 
@@ -278,23 +250,12 @@ private fun NowPlayingControls(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Back button + context name
+        // Context name
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(40.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(24.dp),
-                    tint = controlColor,
-                )
-            }
             if (queueState.contextName.isNotEmpty()) {
                 Text(
                     text = queueState.contextName,
@@ -305,8 +266,6 @@ private fun NowPlayingControls(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                 )
-                // Invisible spacer to balance the icon and center the text
-                Spacer(modifier = Modifier.size(40.dp))
             }
         }
 
@@ -393,32 +352,6 @@ private fun NowPlayingControls(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun VolumeBar(
-    volume: Int,
-    controlColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    val fraction = volume / 65535f
-    Box(
-        modifier = modifier
-            .width(4.dp)
-            .height(120.dp)
-            .background(
-                controlColor.copy(alpha = 0.3f),
-                RoundedCornerShape(2.dp),
-            ),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .fillMaxHeight(fraction)
-                .background(controlColor, RoundedCornerShape(2.dp)),
-        )
     }
 }
 

@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -49,20 +48,6 @@ fun KeyMappingScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                onClick = {
-                    if (recordingAction != null) keyMappingManager.cancelRecording()
-                    onBack()
-                },
-                modifier = Modifier.focusCircle(),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Key Mapping",
                 style = MaterialTheme.typography.titleLarge,

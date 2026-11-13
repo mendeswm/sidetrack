@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FiberNew
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.RemoveCircleOutline
@@ -100,14 +99,7 @@ fun SavedShowsScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack, modifier = Modifier.focusCircle()) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
+Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Podcasts",
                 style = MaterialTheme.typography.titleLarge,

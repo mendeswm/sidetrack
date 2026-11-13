@@ -98,16 +98,6 @@ class MainActivity : ComponentActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
-    private fun adjustVolume(up: Boolean): Boolean {
-        val step = 65535 / 20
-        val current = NativeBridge.playerGetVolume()
-        val newVol = if (up) (current + step).coerceAtMost(65535)
-        else (current - step).coerceAtLeast(0)
-        NativeBridge.playerSetVolume(newVol)
-        playerViewModel?.onVolumeChanged(newVol)
-        return true
-    }
-
     private fun dispatchSyntheticKey(keyCode: Int) {
         val now = android.os.SystemClock.uptimeMillis()
         val down = KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0)
@@ -230,10 +220,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
-            // Hardware volume keys — always adjust volume
-            KeyEvent.KEYCODE_VOLUME_UP -> adjustVolume(up = true)
-            KeyEvent.KEYCODE_VOLUME_DOWN -> adjustVolume(up = false)
-
             // Media skip keys
             KeyEvent.KEYCODE_MEDIA_NEXT -> {
                 playerViewModel?.next(); true

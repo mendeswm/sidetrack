@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -102,14 +101,7 @@ fun ArtistScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack, modifier = Modifier.focusCircle()) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
+Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = state.name.ifEmpty { "Loading..." },
                 style = MaterialTheme.typography.titleLarge,
